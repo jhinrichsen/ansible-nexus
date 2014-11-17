@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: Jochen Hinrichsen
+  description: Sonatype Nexus playbook
+  license: MIT
+  min_ansible_version: 1.6
+  platforms:
+  - name: GenericLinux
+    versions:
+    - all
+    - any
+  categories:
+  - system
+dependencies: []

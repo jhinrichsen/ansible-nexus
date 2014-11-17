@@ -1,0 +1,7 @@
+---
+
+- hosts: dev
+  roles:
+  - { role: jhinrichsen.nexus,
+      nexus_version: '2.10.0-02',
+      sudo: yes}

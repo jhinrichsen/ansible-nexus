@@ -1,0 +1,10 @@
+---
+# defaults file for ansible-nexus
+nexus_download_dir: '/tmp'
+# nexus_package: 'nexus-2.10.0-02-bundle.tar.gz'
+nexus_package: 'nexus-latest-bundle.tar.gz'
+nexus_version: 'latest'
+nexus_installation_dir: '/usr/share'
+nexus_working_dir: '/var/nexus'
+nexus_port: 9999
+
