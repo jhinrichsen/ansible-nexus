@@ -1,41 +1,73 @@
 ---
 # tasks file for ansible-nexus
-- name: download Nexus to host
-  local_action: get_url url=http://download.sonatype.com/nexus/oss/{{nexus_package}} dest="{{nexus_download_dir}}/{{nexus_package}}"
+- name: Download Nexus to control host
+  local_action: get_url url=http://download.sonatype.com/nexus/oss/{{ nexus_package }} dest="{{ nexus_download_dir }}/{{ nexus_package }} "
   tags: download
   sudo: no
 
-- name: "{{nexus_installation_dir}} must exist"
-  file:
-    path="{{nexus_installation_dir}}"
-    state="directory"
+- name: Ensure Nexus o/s group exists
+  group: name="{{ nexus_os_group }}" state=present
+  when: nexus_create_os_group
+  sudo: true
 
-- name: Unpacks Nexus download
+- name: Ensure Nexus o/s user exists
+  user: name="{{ nexus_os_user }}" group="{{ nexus_os_group }}" shell="{{ nexus_os_user_shell }}" state=present
+  when: nexus_create_os_user
+  sudo: true
+
+- name: Ensure Nexus installation directory exists
+  file:
+    path="{{ nexus_installation_dir }}"
+    state="directory"
+  sudo: true
+
+- name: Unpack Nexus download
   unarchive:
-    src="{{nexus_download_dir}}/{{nexus_package}}"
-    dest="{{nexus_installation_dir}}"
-    creates="{{nexus_installation_dir}}/nexus-{{nexus_version}}/bin/nexus"
+    src="{{ nexus_download_dir }}/{{ nexus_package }}"
+    dest="{{ nexus_installation_dir }}"
+    creates="{{ nexus_installation_dir }}/nexus-{{ nexus_version }}"
     force=no
+    owner={{ nexus_os_user }}
+    group={{ nexus_os_group }}
+    mode="0755"
   tags: unpack
 
-- name: Move sonatype working directory into place (1/2)
-  stat: path="{{nexus_installation_dir}}/sonatype-work"
+- name: Check if sonatype working directory exists
+  stat: path="{{ nexus_installation_dir }}/sonatype-work"
   register: s_w
 
-- name: Move sonatype working directory into place (2/2)
-  command: mv "{{nexus_installation_dir}}/sonatype-work" "{{nexus_working_dir}}"
+- name: Move existing sonatype working directory into specified working dir
+  command: mv "{{ nexus_installation_dir }}/sonatype-work" "{{ nexus_working_dir }}"
   when: s_w.stat.exists
 
-- name: Configure port
+- name: Set permissions and ownership on Nexus installation directory
+  file:
+    path={{ nexus_installation_dir }}/{{ nexus_package }}
+    state="directory"
+    owner="{{ nexus_os_user }}"
+    group="{{ nexus_os_group }}"
+    mode="0755"
+    recurse=true
+
+- name: Set permissions and ownership on Nexus work directory
+  file:
+    path={{ nexus_working_dir }}
+    state="directory"
+    owner="{{ nexus_os_user }}"
+    group="{{ nexus_os_group }}"
+    mode="0755"
+    recurse=true
+
+- name: Configure port in nexus.properties
   lineinfile:
-    dest="{{nexus_installation_dir}}/nexus-{{nexus_version}}/conf/nexus.properties"
-    line="application-port={{nexus_port}}"
+    dest="{{ nexus_installation_dir }}/nexus-{{ nexus_version }}/conf/nexus.properties"
+    line="application-port={{ nexus_port }}"
     regexp="application-port=.*"
     state=present
 
-- name: Configure workdir
+- name: Configure workdir in nexus.properties
   lineinfile:
-    dest="{{nexus_installation_dir}}/nexus-{{nexus_version}}/conf/nexus.properties"
-    line="nexus-work={{nexus_working_dir}}"
+    dest="{{ nexus_installation_dir }}/nexus-{{ nexus_version }}/conf/nexus.properties"
+    line="nexus-work={{ nexus_working_dir }}"
     regexp="nexus-work=.*"
     state=present
