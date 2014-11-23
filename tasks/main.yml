@@ -1,8 +1,7 @@
 ---
 # tasks file for ansible-nexus
 - name: download Nexus to host
-  local_action: >
-    command wget -N -P "{{nexus_download_dir}}"  http://download.sonatype.com/nexus/oss/{{nexus_package}}
+  local_action: get_url url=http://download.sonatype.com/nexus/oss/{{nexus_package}} dest="{{nexus_download_dir}}/{{nexus_package}}"
   tags: download
   sudo: no
 
