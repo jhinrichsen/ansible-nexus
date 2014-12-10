@@ -1,7 +1,7 @@
 ---
 # tasks file for ansible-nexus
 - name: Download Nexus to control host
-  local_action: get_url url=http://download.sonatype.com/nexus/oss/{{ nexus_package }} dest="{{ nexus_download_dir }}/{{ nexus_package }}"
+  get_url: url=http://download.sonatype.com/nexus/oss/{{ nexus_package }} dest="{{ nexus_download_dir }}/{{ nexus_package }}"
   tags: download
   sudo: no
 
@@ -27,6 +27,7 @@
     dest="{{ nexus_installation_dir }}"
     creates="{{ nexus_installation_dir }}/nexus-{{ nexus_version }}"
     force=no
+    copy=false
     owner={{ nexus_os_user }}
     group={{ nexus_os_group }}
     mode="0755"
