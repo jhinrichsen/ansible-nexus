@@ -1,2 +1,12 @@
 ---
 # handlers file for ansible-nexus
+
+- name: 'start nexus'
+  sudo: yes
+  service: name=nexus state=started
+  tags:
+    - init
+
+- name: 'restart nexus'
+  sudo: yes
+  service: name=nexus state=restarted

@@ -36,6 +36,10 @@
 - name: Update symlink nexus-latest
   shell: ln -fs `ls -d {{ nexus_installation_dir }}/nexus-*|tail -1` {{ nexus_installation_dir }}/nexus-latest
 
+- name: Install createrepo for nexus-yum-repository-plugin
+  yum: name=createrepo state=installed
+  when: ansible_os_family == "RedHat"
+
 - name: Check if sonatype working directory exists
   stat: path="{{ nexus_installation_dir }}/sonatype-work"
   register: s_w
@@ -62,12 +66,35 @@
     mode="0755"
     recurse=true
 
+- name: Set permissions and ownership on Nexus logs directory
+  file:
+    path={{ nexus_installation_dir }}/nexus-latest/logs
+    owner="{{ nexus_os_user }}"
+    group="{{ nexus_os_group }}"
+    state=directory
+
+- name: Set permissions and ownership on Nexus tmp directory
+  file:
+    path={{ nexus_installation_dir }}/nexus-latest/tmp
+    owner="{{ nexus_os_user }}"
+    group="{{ nexus_os_group }}"
+    state=directory
+
+- name: Set permissions and ownership on Nexus pid directory
+  file:
+    path=/var/run/nexus
+    owner="{{ nexus_os_user }}"
+    group="{{ nexus_os_group }}"
+    state=directory
+
 - name: Configure port in nexus.properties
   lineinfile:
     dest="{{ nexus_installation_dir }}/nexus-{{ nexus_version }}/conf/nexus.properties"
     line="application-port={{ nexus_port }}"
     regexp="application-port=.*"
     state=present
+  notify:
+    - 'restart nexus'
 
 - name: Configure workdir in nexus.properties
   lineinfile:
@@ -75,3 +102,20 @@
     line="nexus-work={{ nexus_working_dir }}"
     regexp="nexus-work=.*"
     state=present
+  notify:
+    - 'restart nexus'
+
+- name: Copy the /etc/init.d/nexus file
+  template: src=init-nexus.j2 dest=/etc/init.d/nexus owner=root group=root mode=0755 backup=yes
+  when: ansible_os_family == "RedHat"
+  notify:
+    - 'start nexus'
+
+- name: Register service with chkconfig system
+  service: name=nexus enabled=yes
+  when: ansible_os_family == "RedHat"
+
+- name: Set service start/stop order
+  sudo: yes
+  command: chkconfig nexus reset
+  when: ansible_os_family == "RedHat"
