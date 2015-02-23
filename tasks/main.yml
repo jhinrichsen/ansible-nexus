@@ -109,7 +109,7 @@
   template: src=init-nexus.j2 dest=/etc/init.d/nexus owner=root group=root mode=0755 backup=yes
   when: ansible_os_family == "RedHat"
   notify:
-    - 'start nexus'
+    - 'restart nexus'
 
 - name: Register service with chkconfig system
   service: name=nexus enabled=yes
