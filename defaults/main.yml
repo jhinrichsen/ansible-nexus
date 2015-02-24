@@ -11,4 +11,4 @@ nexus_create_os_user: true
 nexus_os_user: 'nexus'
 nexus_create_os_group: "{{ nexus_create_os_user | bool }}"
 nexus_os_group: 'nexus'
-nexus_os_user_shell: '/usr/sbin/nologin'
+nexus_os_user_shell: '/bin/bash'
